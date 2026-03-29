@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CryptoAPI — Developer Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --ink:#080a0e;
+  --ink2:#0f1116;
+  --ink3:#161a22;
+  --gold:#c9a84c;
+  --gold-dim:#7a5f28;
+  --gold-pale:#e8d5a3;
+  --silver:#7a8190;
+  --silver-lt:#b8c0cc;
+  --white:#ededea;
+  --danger:#b83228;
+  --success:#2d7a5a;
+  --border:rgba(201,168,76,0.12);
+  --border2:rgba(201,168,76,0.28);
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --mono:'DM Mono',monospace;
+  --ease:220ms cubic-bezier(.4,0,.2,1);
+}
+
+html{scroll-behavior:smooth}
+
+body{
+  background:var(--ink);
+  color:var(--white);
+  font-family:var(--mono);
+  font-size:12px;
+  font-weight:300;
+  line-height:1.6;
+  min-height:100vh;
+}
+
+/* grain */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:999;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity:.55;
+}
+
+/* ─── Layout ─────────────────────────────────────────── */
+.app{display:grid;grid-template-rows:56px 1fr;min-height:100vh}
+
+/* ─── Header ─────────────────────────────────────────── */
+header{
+  background:var(--ink2);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 32px;gap:0;
+  position:sticky;top:0;z-index:100;
+}
+
+.wordmark{display:flex;flex-direction:column;line-height:1;margin-right:36px}
+.wordmark-title{font-family:var(--serif);font-size:20px;font-weight:300;font-style:italic;color:var(--gold);letter-spacing:.04em}
+.wordmark-sub{font-size:8px;letter-spacing:.24em;text-transform:uppercase;color:var(--silver);margin-top:2px}
+
+.header-sep{width:1px;height:24px;background:var(--border);margin:0 24px}
+
+.hdr-pill{
+  display:flex;align-items:center;gap:7px;
+  background:rgba(201,168,76,.05);border:1px solid var(--border);
+  border-radius:2px;padding:4px 12px;font-size:9px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--gold-dim);
+}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--gold-dim)}
+.dot.live{background:var(--gold);box-shadow:0 0 6px rgba(201,168,76,.5);animation:beacon 2s ease-in-out infinite}
+
+@keyframes beacon{0%,100%{box-shadow:0 0 6px rgba(201,168,76,.5)}50%{box-shadow:0 0 12px rgba(201,168,76,.8)}}
+
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:16px}
+.hdr-right .user-chip{font-size:10px;color:var(--silver);letter-spacing:.06em}
+.hdr-right .btn-sm{font-size:10px;padding:5px 14px}
+
+/* ─── Body split ─────────────────────────────────────── */
+.body{display:grid;grid-template-columns:220px 1fr}
+
+/* ─── Sidebar ─────────────────────────────────────────── */
+nav.sidebar{
+  background:var(--ink2);border-right:1px solid var(--border);
+  padding:24px 0;display:flex;flex-direction:column;
+  position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;
+}
+
+.nav-sec{font-size:8px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold-dim);padding:0 20px;margin:18px 0 5px}
+.nav-sec:first-child{margin-top:0}
+
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:9px 20px;
+  cursor:pointer;color:var(--silver);font-size:11px;letter-spacing:.05em;
+  border-left:2px solid transparent;transition:all var(--ease);user-select:none;
+}
+.nav-item:hover{color:var(--white);background:rgba(255,255,255,.015)}
+.nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(201,168,76,.04)}
+.nav-icon{width:14px;text-align:center;font-size:12px;opacity:.7}
+.nav-item.active .nav-icon{opacity:1}
+
+.nav-footer{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border)}
+.nav-footer-text{font-size:8px;letter-spacing:.1em;color:var(--silver);opacity:.4;line-height:1.9}
+
+/* ─── Main content ────────────────────────────────────── */
+main{padding:32px 36px;overflow-y:auto}
+
+.panel{display:none;animation:fi .25s ease}
+.panel.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+.page-hdr{margin-bottom:28px;padding-bottom:18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-end;justify-content:space-between}
+.page-title{font-family:var(--serif);font-size:28px;font-weight:300;font-style:italic;color:var(--white);line-height:1}
+.page-sub{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--silver);margin-top:5px}
+
+/* grids */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.span2{grid-column:span 2}
+.stack{display:flex;flex-direction:column;gap:16px}
+
+/* card */
+.card{background:var(--ink2);border:1px solid var(--border);border-radius:2px;padding:20px;position:relative}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);opacity:0;transition:opacity var(--ease)}
+.card:hover::before{opacity:.5}
+.card-label{font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* stat card */
+.stat{background:var(--ink2);border:1px solid var(--border);border-radius:2px;padding:16px 20px;position:relative;overflow:hidden}
+.stat::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold-dim),transparent);opacity:.35}
+.stat-label{font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:var(--silver);margin-bottom:8px}
+.stat-value{font-family:var(--serif);font-size:26px;font-weight:300;color:var(--white);line-height:1}
+.stat-value.gold{color:var(--gold)}
+.stat-unit{font-size:9px;color:var(--silver);margin-top:3px;letter-spacing:.06em}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border:1px solid var(--border2);border-radius:1px;background:transparent;color:var(--silver-lt);font-family:var(--mono);font-size:11px;letter-spacing:.07em;cursor:pointer;transition:all var(--ease);white-space:nowrap}
+.btn:hover{color:var(--gold);border-color:var(--gold-dim);background:rgba(201,168,76,.04)}
+.btn:active{transform:scale(.98)}
+.btn-primary{border-color:var(--gold-dim);color:var(--gold);background:rgba(201,168,76,.06)}
+.btn-primary:hover{background:rgba(201,168,76,.11);border-color:var(--gold)}
+.btn-danger{border-color:rgba(184,50,40,.35);color:#d96055}
+.btn-danger:hover{background:rgba(184,50,40,.07);border-color:var(--danger)}
+.btn-ghost{border-color:transparent;color:var(--silver);padding:9px 12px}
+.btn-ghost:hover{color:var(--white);border-color:var(--border)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* form */
+.field{margin-bottom:14px}
+.field-label{font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:6px;display:block}
+input[type=text],input[type=email],input[type=password],textarea,select{
+  width:100%;background:var(--ink3);border:1px solid rgba(201,168,76,.16);
+  border-radius:1px;color:var(--white);font-family:var(--mono);font-size:12px;
+  font-weight:300;padding:9px 12px;outline:none;transition:border-color var(--ease);letter-spacing:.04em;
+}
+input:focus,textarea:focus,select:focus{border-color:var(--gold-dim);box-shadow:0 0 0 1px rgba(201,168,76,.07)}
+textarea{resize:vertical;min-height:80px;line-height:1.7}
+
+/* surfaces */
+.surface{background:var(--ink3);border:1px solid var(--border);border-radius:2px;padding:14px 16px;font-family:var(--mono);font-size:11px;word-break:break-all;color:var(--silver);line-height:1.8}
+.surface.ok{color:#8dd0b0;border-color:rgba(45,122,90,.3)}
+.surface.err{color:#e07060;border-color:rgba(184,50,40,.3)}
+.surface.key-display{color:var(--gold-pale);border-color:var(--border2);font-size:11.5px;letter-spacing:.04em}
+.surface pre{white-space:pre-wrap}
+
+/* divider */
+.divider{height:1px;background:var(--border);margin:18px 0}
+
+/* tag */
+.tag{display:inline-block;padding:2px 8px;border:1px solid var(--border);border-radius:1px;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--silver)}
+.tag.gold{color:var(--gold-dim);border-color:var(--border2);background:rgba(201,168,76,.04)}
+.tag.green{color:#5dba8a;border-color:rgba(45,122,90,.35);background:rgba(45,122,90,.05)}
+.tag.red{color:#d96055;border-color:rgba(184,50,40,.35);background:rgba(184,50,40,.05)}
+
+/* key table */
+.key-table{width:100%;border-collapse:collapse}
+.key-table th{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--silver);padding:8px 0;border-bottom:1px solid var(--border);text-align:left;font-weight:300}
+.key-table td{padding:10px 0;border-bottom:1px solid rgba(201,168,76,.05);vertical-align:middle;font-size:11px;color:var(--silver-lt)}
+.key-table td:first-child{font-family:var(--mono);color:var(--gold-pale);font-size:10.5px}
+.key-table tr:last-child td{border-bottom:none}
+
+/* usage bar */
+.ubar-wrap{background:var(--ink3);border:1px solid var(--border);border-radius:1px;height:3px;overflow:hidden;margin:6px 0 4px}
+.ubar-fill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:1px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+
+/* code block */
+.code{background:var(--ink3);border:1px solid var(--border);border-radius:2px;padding:16px;font-family:var(--mono);font-size:11px;color:var(--gold-pale);line-height:2;overflow-x:auto}
+.code .c-key{color:#7eb6e8}.code .c-str{color:#8dd0b0}.code .c-cmt{color:var(--silver);font-style:italic}
+
+/* endpoint rows */
+.ep-row{display:flex;align-items:baseline;gap:12px;padding:10px 0;border-bottom:1px solid rgba(201,168,76,.05)}
+.ep-row:last-child{border-bottom:none}
+.ep-method{font-size:8px;letter-spacing:.12em;padding:3px 7px;border-radius:1px;flex-shrink:0;width:40px;text-align:center}
+.ep-method.get{background:rgba(42,100,160,.18);color:#7eb6e8;border:1px solid rgba(42,100,160,.28)}
+.ep-method.post{background:rgba(46,125,94,.18);color:#6abf8a;border:1px solid rgba(46,125,94,.28)}
+.ep-path{font-family:var(--mono);font-size:11px;color:var(--white);flex-shrink:0;min-width:160px}
+.ep-desc{font-size:11px;color:var(--silver)}
+
+/* modal overlay (faux-viewport for fixed) */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--ink2);border:1px solid var(--border2);border-radius:2px;padding:28px;width:440px;max-width:90vw;position:relative}
+.modal-title{font-family:var(--serif);font-size:22px;font-style:italic;color:var(--white);margin-bottom:18px}
+.modal-close{position:absolute;top:16px;right:16px;background:transparent;border:none;color:var(--silver);cursor:pointer;font-size:16px;font-family:var(--mono)}
+
+/* key reveal */
+.key-reveal{background:var(--ink3);border:1px solid var(--border2);border-radius:2px;padding:14px;font-family:var(--mono);font-size:11px;color:var(--gold-pale);word-break:break-all;line-height:1.8;margin:12px 0}
+.key-warn{font-size:10px;color:#d4a843;letter-spacing:.04em;line-height:1.7;padding:8px 0}
+
+/* scrollbar */
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(201,168,76,.18);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:rgba(201,168,76,.35)}
+
+/* responsive */
+@media(max-width:860px){
+  .body{grid-template-columns:1fr}
+  nav.sidebar{position:relative;height:auto;flex-direction:row;padding:6px 0;border-right:none;border-bottom:1px solid var(--border);overflow-x:auto}
+  .nav-sec,.nav-footer{display:none}
+  .nav-item{flex-shrink:0;padding:6px 14px;border-left:none;border-bottom:2px solid transparent}
+  .nav-item.active{border-bottom-color:var(--gold)}
+  .g4,.g3,.g2{grid-template-columns:1fr 1fr}
+  .span2{grid-column:span 1}
+  main{padding:20px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- Header -->
+<header>
+  <div class="wordmark">
+    <div class="wordmark-title">CryptoAPI</div>
+    <div class="wordmark-sub">Encryption as a Service</div>
+  </div>
+  <div class="header-sep"></div>
+  <div class="hdr-pill">
+    <div class="dot" id="hdr-dot"></div>
+    <span id="hdr-status-text">Not connected</span>
+  </div>
+  <div class="hdr-right">
+    <span class="user-chip" id="hdr-user">—</span>
+    <button class="btn btn-ghost btn-sm" onclick="logout()" id="btn-logout" style="display:none">Sign out</button>
+    <button class="btn btn-primary btn-sm" onclick="showAuth()" id="btn-login">Get started</button>
+  </div>
+</header>
+
+<div class="body">
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="nav-sec">Overview</div>
+  <div class="nav-item active" data-panel="dashboard"><span class="nav-icon">◈</span> Dashboard</div>
+  <div class="nav-item" data-panel="usage"><span class="nav-icon">◉</span> Usage</div>
+
+  <div class="nav-sec">Cryptography</div>
+  <div class="nav-item" data-panel="encrypt"><span class="nav-icon">⊞</span> Encrypt</div>
+  <div class="nav-item" data-panel="decrypt"><span class="nav-icon">⊟</span> Decrypt</div>
+
+  <div class="nav-sec">Account</div>
+  <div class="nav-item" data-panel="keys"><span class="nav-icon">⬡</span> API Keys</div>
+  <div class="nav-item" data-panel="docs"><span class="nav-icon">≡</span> Docs</div>
+
+  <div class="nav-footer">
+    <div class="nav-footer-text">AES-256-GCM<br>SHA-512 · Scrypt · HKDF<br>v2.0</div>
+  </div>
+</nav>
+
+<!-- Main -->
+<main>
+
+  <!-- ── Dashboard ── -->
+  <section class="panel active" id="panel-dashboard">
+    <div class="page-hdr">
+      <div>
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">Overview & quick actions</div>
+      </div>
+      <div class="tag gold" id="tier-badge">Free Tier</div>
+    </div>
+
+    <div class="g4" style="margin-bottom:16px">
+      <div class="stat"><div class="stat-label">Today's requests</div><div class="stat-value gold" id="stat-used">—</div><div class="stat-unit">API calls</div></div>
+      <div class="stat"><div class="stat-label">Remaining</div><div class="stat-value" id="stat-remaining">—</div><div class="stat-unit">calls left</div></div>
+      <div class="stat"><div class="stat-label">Quota</div><div class="stat-value" id="stat-quota">—</div><div class="stat-unit">requests/day</div></div>
+      <div class="stat"><div class="stat-label">Encryption</div><div class="stat-value" style="font-size:18px;margin-top:4px">256-bit</div><div class="stat-unit">AES-GCM</div></div>
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <div class="card-label">Daily quota</div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--silver);margin-bottom:6px">
+          <span>0</span><span id="quota-pct" style="color:var(--gold)">0%</span><span id="quota-max">100</span>
+        </div>
+        <div class="ubar-wrap" style="height:5px;margin-bottom:14px"><div class="ubar-fill" id="quota-bar" style="width:0%"></div></div>
+        <div style="font-size:10px;color:var(--silver);line-height:1.8">
+          Resets daily at UTC midnight.<br>
+          Upgrade to Pro for 10,000 req/day.
+        </div>
+        <div class="divider"></div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="nav('encrypt')">Encrypt data →</button>
+          <button class="btn" onclick="nav('docs')">API docs</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Quick start</div>
+        <div class="code">
+<span class="c-cmt"># 1. Register & get your key</span>
+curl -X POST <span class="c-str">https://api.example.com/v1/register</span> \
+  -d <span class="c-str">'{"email":"you@co.com","name":"Your Name"}'</span>
+
+<span class="c-cmt"># 2. Encrypt a secret</span>
+curl -X POST <span class="c-str">https://api.example.com/v1/encrypt</span> \
+  -H <span class="c-str">"Authorization: Bearer ck_live_..."</span> \
+  -d <span class="c-str">'{"plaintext":"my secret"}'</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Usage ── -->
+  <section class="panel" id="panel-usage">
+    <div class="page-hdr">
+      <div><div class="page-title">Usage</div><div class="page-sub">Request history — last 30 days</div></div>
+      <button class="btn btn-ghost" onclick="loadUsage()">↺ Refresh</button>
+    </div>
+    <div class="g3" style="margin-bottom:16px">
+      <div class="stat"><div class="stat-label">Today</div><div class="stat-value gold" id="u-today">—</div><div class="stat-unit">requests</div></div>
+      <div class="stat"><div class="stat-label">Tier</div><div class="stat-value" id="u-tier" style="font-size:18px;margin-top:4px">—</div><div class="stat-unit">plan</div></div>
+      <div class="stat"><div class="stat-label">Remaining</div><div class="stat-value" id="u-remaining">—</div><div class="stat-unit">today</div></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Daily breakdown</div>
+      <div id="usage-table-wrap">
+        <div style="color:var(--silver);font-size:11px">Sign in to view usage history.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Encrypt ── -->
+  <section class="panel" id="panel-encrypt">
+    <div class="page-hdr"><div><div class="page-title">Encrypt</div><div class="page-sub">AES-256-GCM authenticated encryption</div></div></div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-label">Plaintext input</div>
+        <div class="field"><label class="field-label">Message</label><textarea id="enc-input" placeholder="Enter text to encrypt…" style="min-height:120px"></textarea></div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="doEncrypt()">Encrypt →</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('enc-input').value='';setResp('enc-resp','—','')">Clear</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label">Result</div>
+        <div class="surface" id="enc-resp" style="min-height:120px">—</div>
+        <div style="margin-top:10px"><button class="btn btn-ghost" style="font-size:10px;padding:5px 12px" onclick="sendToDecrypt()">↓ Send to Decrypt</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Decrypt ── -->
+  <section class="panel" id="panel-decrypt">
+    <div class="page-hdr"><div><div class="page-title">Decrypt</div><div class="page-sub">AES-256-GCM authenticated decryption</div></div></div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-label">Ciphertext input</div>
+        <div class="field"><label class="field-label">Ciphertext (Base64)</label><textarea id="dec-ct" placeholder="Paste ciphertext…" style="min-height:72px"></textarea></div>
+        <div class="field"><label class="field-label">Nonce (Base64)</label><input type="text" id="dec-nonce" placeholder="Paste nonce…"></div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="doDecrypt()">Decrypt →</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('dec-ct').value='';document.getElementById('dec-nonce').value='';setResp('dec-resp','—','')">Clear</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label">Plaintext</div>
+        <div class="surface" id="dec-resp" style="min-height:120px">—</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── API Keys ── -->
+  <section class="panel" id="panel-keys">
+    <div class="page-hdr">
+      <div><div class="page-title">API Keys</div><div class="page-sub">Manage your credentials</div></div>
+      <button class="btn btn-primary" onclick="createKey()">+ New key</button>
+    </div>
+    <div class="card">
+      <div class="card-label">Active keys</div>
+      <table class="key-table" id="keys-table">
+        <thead><tr><th>Prefix</th><th>Label</th><th>Created</th><th>Status</th><th></th></tr></thead>
+        <tbody id="keys-tbody"><tr><td colspan="5" style="color:var(--silver)">Sign in to view keys.</td></tr></tbody>
+      </table>
+    </div>
+    <div style="margin-top:16px" class="card">
+      <div class="card-label">Key security notes</div>
+      <div style="font-size:11px;color:var(--silver);line-height:2">
+        Your full API key is shown <strong style="color:var(--white)">once</strong> at creation — store it securely.<br>
+        Keys are stored as SHA-256 hashes; we cannot recover the raw key.<br>
+        Revoke compromised keys immediately — revocation is instant.
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Docs ── -->
+  <section class="panel" id="panel-docs">
+    <div class="page-hdr"><div><div class="page-title">API Reference</div><div class="page-sub">REST endpoints · authentication · examples</div></div></div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-label">Authentication</div>
+      <div style="font-size:11px;color:var(--silver);line-height:1.9;margin-bottom:12px">Every request must include your API key as a Bearer token.</div>
+      <div class="surface key-display">Authorization: Bearer ck_live_<span style="color:var(--gold)">your_key_here</span></div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-label">Endpoints</div>
+      <div class="ep-row"><span class="ep-method post">POST</span><span class="ep-path">/v1/register</span><span class="ep-desc">Create account, get API key. No auth required.</span></div>
+      <div class="ep-row"><span class="ep-method post">POST</span><span class="ep-path">/v1/encrypt</span><span class="ep-desc">AES-256-GCM encrypt. Body: <code style="color:var(--gold-pale)">{"plaintext":"…"}</code></span></div>
+      <div class="ep-row"><span class="ep-method post">POST</span><span class="ep-path">/v1/decrypt</span><span class="ep-desc">AES-256-GCM decrypt. Body: <code style="color:var(--gold-pale)">{"ciphertext":"…","nonce":"…"}</code></span></div>
+      <div class="ep-row"><span class="ep-method get">GET</span><span class="ep-path">/v1/usage</span><span class="ep-desc">Daily usage stats and 30-day history.</span></div>
+      <div class="ep-row"><span class="ep-method get">GET</span><span class="ep-path">/v1/keys</span><span class="ep-desc">List all API keys for your account.</span></div>
+      <div class="ep-row"><span class="ep-method post">POST</span><span class="ep-path">/v1/keys</span><span class="ep-desc">Create additional API key. Body: <code style="color:var(--gold-pale)">{"label":"…"}</code></span></div>
+      <div class="ep-row"><span class="ep-method post">POST</span><span class="ep-path">/v1/keys/revoke</span><span class="ep-desc">Revoke a key by prefix.</span></div>
+      <div class="ep-row"><span class="ep-method get">GET</span><span class="ep-path">/v1/status</span><span class="ep-desc">Encryption server health check.</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">curl examples</div>
+      <div class="code">
+<span class="c-cmt"># Register</span>
+curl -X POST http://localhost:8000/v1/register \
+  -H <span class="c-str">"Content-Type: application/json"</span> \
+  -d <span class="c-str">'{"email":"user@example.com","name":"Alice"}'</span>
+
+<span class="c-cmt"># Encrypt</span>
+curl -X POST http://localhost:8000/v1/encrypt \
+  -H <span class="c-str">"Authorization: Bearer ck_live_..."</span> \
+  -H <span class="c-str">"Content-Type: application/json"</span> \
+  -d <span class="c-str">'{"plaintext":"hello world"}'</span>
+
+<span class="c-cmt"># Decrypt</span>
+curl -X POST http://localhost:8000/v1/decrypt \
+  -H <span class="c-str">"Authorization: Bearer ck_live_..."</span> \
+  -H <span class="c-str">"Content-Type: application/json"</span> \
+  -d <span class="c-str">'{"ciphertext":"…","nonce":"…"}'</span>
+
+<span class="c-cmt"># Usage stats</span>
+curl http://localhost:8000/v1/usage \
+  -H <span class="c-str">"Authorization: Bearer ck_live_..."</span>
+      </div>
+    </div>
+  </section>
+
+</main>
+</div>
+</div>
+
+<!-- ── Auth Modal ── -->
+<div class="modal-bg" id="auth-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('auth-modal')">✕</button>
+    <div class="modal-title" id="auth-modal-title">Create account</div>
+
+    <div id="auth-register-form">
+      <div class="field"><label class="field-label">Full name</label><input type="text" id="reg-name" placeholder="Alice Chen"></div>
+      <div class="field"><label class="field-label">Email</label><input type="email" id="reg-email" placeholder="alice@example.com"></div>
+      <div class="btn-row" style="margin-top:18px">
+        <button class="btn btn-primary" onclick="doRegister()">Create account →</button>
+        <button class="btn btn-ghost" onclick="switchAuth('login')">Already have a key</button>
+      </div>
+    </div>
+
+    <div id="auth-login-form" style="display:none">
+      <div class="field"><label class="field-label">API Key</label><input type="password" id="login-key" placeholder="ck_live_…"></div>
+      <div class="btn-row" style="margin-top:18px">
+        <button class="btn btn-primary" onclick="doLogin()">Sign in →</button>
+        <button class="btn btn-ghost" onclick="switchAuth('register')">New account</button>
+      </div>
+    </div>
+
+    <div class="surface err" id="auth-error" style="margin-top:14px;display:none"></div>
+  </div>
+</div>
+
+<!-- ── Key Reveal Modal ── -->
+<div class="modal-bg" id="key-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('key-modal')">✕</button>
+    <div class="modal-title">Your API Key</div>
+    <div class="key-warn">⚠ Copy this key now — it will not be shown again.</div>
+    <div class="key-reveal" id="modal-key-value"></div>
+    <div class="btn-row" style="margin-top:16px">
+      <button class="btn btn-primary" onclick="copyModalKey()">Copy key</button>
+      <button class="btn btn-ghost" onclick="closeModal('key-modal')">Done</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const BASE = '';   // same origin — change to 'http://localhost:8000' if serving separately
+
+const S = {
+  apiKey: localStorage.getItem('capi_key') || '',
+  email:  localStorage.getItem('capi_email') || '',
+  usage:  null,
+  lastEnc: null,
+  reqCount: 0,
+};
+
+/* ── Navigation ── */
+function nav(id){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelector(`[data-panel="${id}"]`).classList.add('active');
+  document.getElementById(`panel-${id}`).classList.add('active');
+}
+document.querySelectorAll('.nav-item').forEach(el=>el.addEventListener('click',()=>nav(el.dataset.panel)));
+
+/* ── Auth state ── */
+function setLoggedIn(key,email){
+  S.apiKey=key; S.email=email;
+  localStorage.setItem('capi_key',key);
+  localStorage.setItem('capi_email',email);
+  document.getElementById('hdr-user').textContent=email;
+  document.getElementById('btn-login').style.display='none';
+  document.getElementById('btn-logout').style.display='';
+  refreshAll();
+}
+
+function logout(){
+  S.apiKey=''; S.email='';
+  localStorage.removeItem('capi_key');
+  localStorage.removeItem('capi_email');
+  document.getElementById('hdr-user').textContent='—';
+  document.getElementById('btn-login').style.display='';
+  document.getElementById('btn-logout').style.display='none';
+  setOffline();
+}
+
+function setOffline(){
+  document.getElementById('hdr-dot').className='dot';
+  document.getElementById('hdr-status-text').textContent='Not connected';
+}
+
+/* ── API helper ── */
+async function api(path, method='GET', body=null){
+  S.reqCount++;
+  const opts={method,headers:{'Content-Type':'application/json'}};
+  if(S.apiKey) opts.headers['Authorization']='Bearer '+S.apiKey;
+  if(body) opts.body=JSON.stringify(body);
+  const r=await fetch(BASE+path,opts);
+  const data=await r.json();
+  if(!r.ok) throw Object.assign(new Error(data.error||'API error'),{status:r.status});
+  return data;
+}
+
+/* ── Register / Login ── */
+function showAuth(){openModal('auth-modal');switchAuth('register')}
+
+function switchAuth(mode){
+  document.getElementById('auth-register-form').style.display=mode==='register'?'':'none';
+  document.getElementById('auth-login-form').style.display=mode==='login'?'':'none';
+  document.getElementById('auth-modal-title').textContent=mode==='register'?'Create account':'Sign in';
+  document.getElementById('auth-error').style.display='none';
+}
+
+async function doRegister(){
+  const name=document.getElementById('reg-name').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const errEl=document.getElementById('auth-error');
+  errEl.style.display='none';
+  try{
+    const r=await api('/v1/register','POST',{name,email});
+    closeModal('auth-modal');
+    document.getElementById('modal-key-value').textContent=r.api_key;
+    openModal('key-modal');
+    setLoggedIn(r.api_key, email);
+  }catch(e){
+    errEl.textContent=e.message;
+    errEl.style.display='';
+  }
+}
+
+async function doLogin(){
+  const key=document.getElementById('login-key').value.trim();
+  const errEl=document.getElementById('auth-error');
+  errEl.style.display='none';
+  try{
+    S.apiKey=key;
+    const r=await api('/v1/usage');
+    closeModal('auth-modal');
+    setLoggedIn(key,'Customer');
+  }catch(e){
+    S.apiKey='';
+    errEl.textContent='Invalid key — '+e.message;
+    errEl.style.display='';
+  }
+}
+
+/* ── Modals ── */
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+function copyModalKey(){
+  navigator.clipboard.writeText(document.getElementById('modal-key-value').textContent);
+}
+
+/* ── Load usage ── */
+async function loadUsage(){
+  if(!S.apiKey) return;
+  try{
+    const r=await api('/v1/usage');
+    S.usage=r;
+
+    // header pill
+    document.getElementById('hdr-dot').className='dot live';
+    document.getElementById('hdr-status-text').textContent='Connected';
+
+    // stats
+    const quota=r.quota;
+    const used=r.used_today;
+    const pct=Math.min(100,Math.round(used/quota*100));
+
+    document.getElementById('stat-used').textContent=used;
+    document.getElementById('stat-remaining').textContent=r.remaining;
+    document.getElementById('stat-quota').textContent=quota.toLocaleString();
+    document.getElementById('quota-bar').style.width=pct+'%';
+    document.getElementById('quota-pct').textContent=pct+'%';
+    document.getElementById('quota-max').textContent=quota;
+
+    document.getElementById('u-today').textContent=used;
+    document.getElementById('u-tier').textContent=r.tier;
+    document.getElementById('u-remaining').textContent=r.remaining;
+
+    const badge=document.getElementById('tier-badge');
+    badge.textContent=r.tier==='pro'?'Pro Tier':'Free Tier';
+    badge.className='tag '+(r.tier==='pro'?'gold':'');
+
+    // usage history table
+    const wrap=document.getElementById('usage-table-wrap');
+    if(r.history && r.history.length){
+      let rows=r.history.map(h=>`
+        <tr>
+          <td style="color:var(--gold-pale)">${h.day}</td>
+          <td>${h.count}</td>
+          <td>
+            <div class="ubar-wrap"><div class="ubar-fill" style="width:${Math.min(100,Math.round(h.count/quota*100))}%"></div></div>
+          </td>
+        </tr>`).join('');
+      wrap.innerHTML=`<table class="key-table"><thead><tr><th>Date</th><th>Requests</th><th style="width:200px">Usage</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+  }catch(e){setOffline()}
+}
+
+/* ── Load keys ── */
+async function loadKeys(){
+  if(!S.apiKey) return;
+  try{
+    const r=await api('/v1/keys');
+    const tbody=document.getElementById('keys-tbody');
+    if(!r.keys||!r.keys.length){tbody.innerHTML='<tr><td colspan="5" style="color:var(--silver)">No keys found.</td></tr>';return}
+    tbody.innerHTML=r.keys.map(k=>`
+      <tr>
+        <td>${k.key_prefix}</td>
+        <td>${k.label||'default'}</td>
+        <td style="color:var(--silver)">${k.created_at.slice(0,10)}</td>
+        <td>${k.revoked_at?'<span class="tag red">Revoked</span>':'<span class="tag green">Active</span>'}</td>
+        <td>${k.revoked_at?'':'<button class="btn btn-danger" style="padding:4px 10px;font-size:9px" onclick="revokeKey(\''+k.key_prefix+'\')">Revoke</button>'}</td>
+      </tr>`).join('');
+  }catch(e){}
+}
+
+async function createKey(){
+  if(!S.apiKey){showAuth();return}
+  const label=prompt('Label for new key:','secondary');
+  if(!label) return;
+  try{
+    const r=await api('/v1/keys','POST',{label});
+    document.getElementById('modal-key-value').textContent=r.api_key;
+    openModal('key-modal');
+    loadKeys();
+  }catch(e){alert(e.message)}
+}
+
+async function revokeKey(prefix){
+  if(!confirm(`Revoke key ${prefix}? This cannot be undone.`)) return;
+  try{
+    await api('/v1/keys/revoke','POST',{key_prefix:prefix});
+    loadKeys();
+  }catch(e){alert(e.message)}
+}
+
+/* ── Encrypt / Decrypt ── */
+function setResp(id, text, cls){
+  const el=document.getElementById(id);
+  el.textContent=text; el.className='surface '+(cls||'');
+}
+
+async function doEncrypt(){
+  const pt=document.getElementById('enc-input').value.trim();
+  if(!pt) return;
+  if(!S.apiKey){showAuth();return}
+  setResp('enc-resp','Encrypting…','');
+  try{
+    const r=await api('/v1/encrypt','POST',{plaintext:pt});
+    S.lastEnc=r;
+    setResp('enc-resp',JSON.stringify(r,null,2),'ok');
+  }catch(e){setResp('enc-resp','Error: '+e.message,'err')}
+}
+
+async function doDecrypt(){
+  const ct=document.getElementById('dec-ct').value.trim();
+  const nonce=document.getElementById('dec-nonce').value.trim();
+  if(!ct||!nonce) return;
+  if(!S.apiKey){showAuth();return}
+  setResp('dec-resp','Decrypting…','');
+  try{
+    const r=await api('/v1/decrypt','POST',{ciphertext:ct,nonce});
+    setResp('dec-resp',r.plaintext,'ok');
+  }catch(e){setResp('dec-resp','Error: '+e.message,'err')}
+}
+
+function sendToDecrypt(){
+  if(!S.lastEnc) return;
+  document.getElementById('dec-ct').value=S.lastEnc.ciphertext||'';
+  document.getElementById('dec-nonce').value=S.lastEnc.nonce||'';
+  nav('decrypt');
+}
+
+/* ── Refresh all ── */
+function refreshAll(){
+  loadUsage();
+  loadKeys();
+}
+
+/* ── Init ── */
+if(S.apiKey){
+  document.getElementById('hdr-user').textContent=S.email||'Customer';
+  document.getElementById('btn-login').style.display='none';
+  document.getElementById('btn-logout').style.display='';
+  refreshAll();
+}
+setInterval(()=>{if(S.apiKey) loadUsage()}, 30000);
+</script>
+</body>
+</html>
